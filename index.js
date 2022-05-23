@@ -25,6 +25,8 @@ async function run() {
   try {
     await client.connect();
     const toolsCollection = client.db("manufacture").collection("tools");
+    const orderCollection = client.db("manufacture").collection("order");
+    const reviewCollection = client.db("manufacture").collection("review");
 
     // get all tools
     app.get("/tools", async (req, res) => {
@@ -36,6 +38,33 @@ async function run() {
     app.get("/tools/:id", async (req, res) => {
       const id = req.params.id;
       const result = await toolsCollection.findOne(ObjectId(id));
+      res.send(result);
+    });
+
+    // post user purchase order
+    app.post("/order", async (req, res) => {
+      const body = req.body;
+      const result = await orderCollection.insertOne(body);
+      res.send(result);
+    });
+
+    // get user orders
+    app.get("/order/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await orderCollection.find({ email }).toArray();
+      res.send(result);
+    });
+
+    // post user review
+    app.post("/review", async (req, res) => {
+      const body = req.body;
+      const result = await reviewCollection.insertOne(body);
+      res.send(result);
+    });
+
+    // get all user reviews
+    app.get("/review", async (req, res) => {
+      const result = await reviewCollection.find({}).toArray();
       res.send(result);
     });
   } finally {
