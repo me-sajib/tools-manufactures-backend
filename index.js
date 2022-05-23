@@ -27,6 +27,9 @@ async function run() {
     const toolsCollection = client.db("manufacture").collection("tools");
     const orderCollection = client.db("manufacture").collection("order");
     const reviewCollection = client.db("manufacture").collection("review");
+    const userInformationCollection = client
+      .db("manufacture")
+      .collection("userInformation");
 
     // get all tools
     app.get("/tools", async (req, res) => {
@@ -65,6 +68,24 @@ async function run() {
     // get all user reviews
     app.get("/review", async (req, res) => {
       const result = await reviewCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    // update user information
+    app.patch("/updateProfile/:email", async (req, res) => {
+      const email = req.params.email;
+      const body = req.body;
+      const result = await userInformationCollection.updateOne(
+        { email },
+        { $set: body }
+      );
+      res.send(result);
+    });
+
+    // get user information
+    app.get("/information/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await userInformationCollection.findOne({ email });
       res.send(result);
     });
   } finally {
