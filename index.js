@@ -49,6 +49,19 @@ async function run() {
       .db("manufacture")
       .collection("userInformation");
 
+    // verify admin
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const isAdmin = await usersCollection.findOne({
+        email: email,
+      });
+      if (isAdmin.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "forbidden" });
+      }
+    };
+
     // get all tools
     app.get("/tools", async (req, res) => {
       const result = await toolsCollection.find({}).toArray();
@@ -133,6 +146,17 @@ async function run() {
     app.get("/userInformation/:email", async (req, res) => {
       const email = req.params.email;
       const result = await userInformationCollection.findOne({ email });
+      res.send(result);
+    });
+
+    // admin role set
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
   } finally {
