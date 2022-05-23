@@ -159,6 +159,13 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+    // get order by id
+    app.get("/userOrder/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const result = await orderCollection.findOne({ _id: ObjectId(id) });
+      res.send(result);
+    });
   } finally {
     // await client.close();
   }
