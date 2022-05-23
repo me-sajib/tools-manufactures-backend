@@ -2,6 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const stripe = require("stripe")(
+  "sk_test_51L0gOaCq7ZcflQjlxFmjnCXsSKqsrHNibU7lLjXK0OM06AC7yKbrlQkSxh9UQRctY1knD6QCT9G7kL9jasGdrOJ700oqYb1LLj"
+);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
@@ -45,8 +48,11 @@ async function run() {
     const orderCollection = client.db("manufacture").collection("order");
     const reviewCollection = client.db("manufacture").collection("review");
     const usersCollection = client.db("manufacture").collection("users");
+    const paymentCollection = client.db("manufacture").collection("payments");
+
     const userInformationCollection = client
       .db("manufacture")
+
       .collection("userInformation");
 
     // verify admin
@@ -165,6 +171,40 @@ async function run() {
       const id = req.params.id;
       const result = await orderCollection.findOne({ _id: ObjectId(id) });
       res.send(result);
+    });
+
+    // payment intent
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const service = req.body;
+      const price = service.price;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+    // payment store to database
+
+    app.patch("/payment/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+
+      const result = await paymentCollection.insertOne(payment);
+      const updatedBooking = await orderCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatedBooking);
     });
   } finally {
     // await client.close();
