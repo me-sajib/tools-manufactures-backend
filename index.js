@@ -127,6 +127,13 @@ async function run() {
       res.send(users);
     });
 
+    // show  user by email
+    app.get("/user/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({ email });
+      res.send(user);
+    });
+
     // store user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
