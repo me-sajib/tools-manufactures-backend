@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -16,7 +17,8 @@ const client = new MongoClient(uri, {
 });
 
 const port = process.env.PORT || 5000;
-
+const tokens =
+  "75babbdf74b9d467f7b086ee158e84ced9e82b280aea25e6fe43fe222b019d5ba1f40b35cea5d43e1aceb1d1a40df215ae0b96ffbe7488a2c9d1529479c40871";
 app.get("/", (req, res) => {
   res.send({ express: "Hello From Express" });
 });
@@ -84,7 +86,8 @@ async function run() {
         updateDoc,
         options
       );
-      res.send({ result });
+      const token = jwt.sign({ email: email }, tokens, { expiresIn: "1d" });
+      res.send({ result, token });
     });
 
     // update user information
