@@ -27,6 +27,7 @@ async function run() {
     const toolsCollection = client.db("manufacture").collection("tools");
     const orderCollection = client.db("manufacture").collection("order");
     const reviewCollection = client.db("manufacture").collection("review");
+    const usersCollection = client.db("manufacture").collection("users");
     const userInformationCollection = client
       .db("manufacture")
       .collection("userInformation");
@@ -71,8 +72,23 @@ async function run() {
       res.send(result);
     });
 
+    // store user
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send({ result });
+    });
+
     // update user information
-    app.patch("/updateProfile/:email", async (req, res) => {
+    app.patch("/userInformation/:email", async (req, res) => {
       const email = req.params.email;
       const body = req.body;
       const result = await userInformationCollection.updateOne(
@@ -83,7 +99,7 @@ async function run() {
     });
 
     // get user information
-    app.get("/information/:email", async (req, res) => {
+    app.get("/userInformation/:email", async (req, res) => {
       const email = req.params.email;
       const result = await userInformationCollection.findOne({ email });
       res.send(result);
