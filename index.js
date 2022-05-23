@@ -81,6 +81,12 @@ async function run() {
       res.send(result);
     });
 
+    // show all order
+    app.get("/order", verifyJWT, async (req, res) => {
+      const result = await orderCollection.find({}).toArray();
+      res.send(result);
+    });
+
     // post user purchase order
     app.post("/order", async (req, res) => {
       const body = req.body;
