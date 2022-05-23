@@ -23,6 +23,21 @@ app.get("/", (req, res) => {
   res.send({ express: "Hello From Express" });
 });
 
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "UnAuthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, tokens, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     await client.connect();
@@ -72,6 +87,12 @@ async function run() {
     app.get("/review", async (req, res) => {
       const result = await reviewCollection.find({}).toArray();
       res.send(result);
+    });
+
+    // show all user
+    app.get("/users", verifyJWT, async (req, res) => {
+      const users = await usersCollection.find({}).toArray();
+      res.send(users);
     });
 
     // store user
