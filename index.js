@@ -68,6 +68,13 @@ async function run() {
       }
     };
 
+    // add new tool
+    app.post("/tools", verifyJWT, async (req, res) => {
+      const tool = req.body;
+      const newTool = await toolsCollection.insertOne(tool);
+      res.send(newTool);
+    });
+
     // get all tools
     app.get("/tools", async (req, res) => {
       const result = await toolsCollection.find({}).toArray();
