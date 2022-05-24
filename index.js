@@ -75,6 +75,15 @@ async function run() {
       res.send(newTool);
     });
 
+    // delete tool by id
+    app.delete("/tools/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const deletedTool = await toolsCollection.deleteOne({
+        _id: ObjectId(id),
+      });
+      res.send(deletedTool);
+    });
+
     // get all tools
     app.get("/tools", async (req, res) => {
       const result = await toolsCollection.find({}).toArray();
