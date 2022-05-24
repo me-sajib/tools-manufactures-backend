@@ -87,6 +87,17 @@ async function run() {
       res.send(result);
     });
 
+    // update order status
+    app.put("/order/status/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
+      const result = await orderCollection.updateOne(
+        { _id: ObjectId(id) },
+        { $set: { status: status } }
+      );
+      res.send(result);
+    });
+
     // post user purchase order
     app.post("/order", async (req, res) => {
       const body = req.body;
