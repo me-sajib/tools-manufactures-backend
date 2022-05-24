@@ -250,5 +250,5 @@ async function run() {
     // await client.close();
   }
 }
-run().catch((e) => );
-app.listen(port, () => );
+run().catch((e) => console.log(e));
+app.listen(port, () => console.log("running app"));
