@@ -122,7 +122,7 @@ async function run() {
     });
 
     // get user orders
-    app.get("/order/:email", async (req, res) => {
+    app.get("/order/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const result = await orderCollection.find({ email }).toArray();
       res.send(result);
@@ -136,7 +136,7 @@ async function run() {
     });
 
     // post user review
-    app.post("/review", async (req, res) => {
+    app.post("/review", verifyJWT, async (req, res) => {
       const body = req.body;
       const result = await reviewCollection.insertOne(body);
       res.send(result);
@@ -149,7 +149,7 @@ async function run() {
     });
 
     // show all user
-    app.get("/users", verifyJWT, async (req, res) => {
+    app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
       const users = await usersCollection.find({}).toArray();
       res.send(users);
     });
@@ -161,6 +161,12 @@ async function run() {
       res.send(user);
     });
 
+    // delete user by email
+    app.delete("/user/:email", verifyJWT, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const result = await usersCollection.deleteOne({ email });
+      res.send(result);
+    });
     // store user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -178,12 +184,16 @@ async function run() {
     });
 
     // update user information
-    app.patch("/userInformation/:email", async (req, res) => {
+    app.put("/userInformation/:email", async (req, res) => {
       const email = req.params.email;
+      const filter = { email: email };
       const body = req.body;
+      const updateDoc = { $set: body };
+      const options = { upsert: true };
       const result = await userInformationCollection.updateOne(
-        { email },
-        { $set: body }
+        filter,
+        updateDoc,
+        options
       );
       res.send(result);
     });
