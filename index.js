@@ -167,6 +167,15 @@ async function run() {
       const result = await usersCollection.deleteOne({ email });
       res.send(result);
     });
+
+    // check is admin or not
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      res.send({ admin: isAdmin });
+    });
+
     // store user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
