@@ -2,9 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const stripe = require("stripe")(
-  "sk_test_51L0gOaCq7ZcflQjlxFmjnCXsSKqsrHNibU7lLjXK0OM06AC7yKbrlQkSxh9UQRctY1knD6QCT9G7kL9jasGdrOJ700oqYb1LLj"
-);
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
@@ -12,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 // mongodb atlas
 
-const uri = `mongodb+srv://manufactureAdmin:mCneSDP76AWkNoQG@cluster0.oxomu.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.oxomu.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -20,19 +18,18 @@ const client = new MongoClient(uri, {
 });
 
 const port = process.env.PORT || 5000;
-const tokens =
-  "75babbdf74b9d467f7b086ee158e84ced9e82b280aea25e6fe43fe222b019d5ba1f40b35cea5d43e1aceb1d1a40df215ae0b96ffbe7488a2c9d1529479c40871";
+
 app.get("/", (req, res) => {
   res.send({ express: "Hello From Express" });
 });
 
 function verifyJWT(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
+  const authCheck = req.headers.authorization;
+  if (!authCheck) {
     return res.status(401).send({ message: "UnAuthorized access" });
   }
-  const token = authHeader.split(" ")[1];
-  jwt.verify(token, tokens, function (err, decoded) {
+  const token = authCheck.split(" ")[1];
+  jwt.verify(token, process.env.JWT_TOKEN, function (err, decoded) {
     if (err) {
       return res.status(403).send({ message: "Forbidden access" });
     }
@@ -44,16 +41,26 @@ function verifyJWT(req, res, next) {
 async function run() {
   try {
     await client.connect();
-    const toolsCollection = client.db("manufacture").collection("tools");
-    const orderCollection = client.db("manufacture").collection("order");
-    const reviewCollection = client.db("manufacture").collection("review");
-    const usersCollection = client.db("manufacture").collection("users");
-    const paymentCollection = client.db("manufacture").collection("payments");
+    const toolsCollection = client
+      .db(process.env.DATABASE)
+      .collection(process.env.TOOL_COLLECTION);
+    const orderCollection = client
+      .db(process.env.DATABASE)
+      .collection(process.env.ORDERS_COLLECTION);
+    const reviewCollection = client
+      .db(process.env.DATABASE)
+      .collection(process.env.REVIEW_COLLECTION);
+    const usersCollection = client
+      .db(process.env.DATABASE)
+      .collection(process.env.USERS_COLLECTION);
+    const paymentCollection = client
+      .db(process.env.DATABASE)
+      .collection(process.env.PAYMENTS_COLLECTION);
 
     const userInformationCollection = client
-      .db("manufacture")
+      .db(process.env.DATABASE)
 
-      .collection("userInformation");
+      .collection(process.env.USER_INFORMATION_COLLECTION);
 
     // verify admin
     const verifyAdmin = async (req, res, next) => {
@@ -180,7 +187,9 @@ async function run() {
         updateDoc,
         options
       );
-      const token = jwt.sign({ email: email }, tokens, { expiresIn: "1d" });
+      const token = jwt.sign({ email: email }, process.env.JWT_TOKEN, {
+        expiresIn: "1d",
+      });
       res.send({ result, token });
     });
 
